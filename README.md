@@ -19,4 +19,10 @@ Un pipeline de traducción automática que integra:
 - **Upsert Logic**: Gestión eficiente de duplicados en la base de datos de destino.
 
 
+## Workflow 3: Weather Data Intelligence & Normalization (PRIMER FLLUJO CREADO EN N8N)
+Sistema de agregación meteorológica multifuente que combina APIs tradicionales y scraping avanzado.
+- **LLM-Powered Scraping**: Uso de Firecrawl para extraer datos estructurados de AccuWeather mediante modelos de lenguaje.
+- **Data Normalization**: Script en JavaScript para convertir diversas fuentes (OpenWeather, MeteoChile, Scraping) a un esquema de datos único (estándar OWM).
+- **Government API Integration**: Consumo de servicios oficiales de climatología con filtrado dinámico.
+
 

@@ -1,0 +1,327 @@
+{
+  "name": "My workflow 2",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -540,
+        -220
+      ],
+      "id": "43e7eb44-3842-4b21-b5f5-68f7c4c10466",
+      "name": "When clicking ‘Test workflow’"
+    },
+    {
+      "parameters": {
+        "url": "https://api.openweathermap.org/data/2.5/weather",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "q",
+              "value": "Puerto Montt"
+            },
+            {
+              "name": "appid",
+              "value": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+            },
+            {
+              "name": "units",
+              "value": "metric"
+            },
+            {
+              "name": "lang",
+              "value": "es"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -240,
+        0
+      ],
+      "id": "a88ab303-dcfd-4cc8-a580-b1bbb3c2da01",
+      "name": "OpenWeatherMap"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.firecrawl.dev/v0/scrape",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer fc-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"url\": \"https://www.accuweather.com/es/cl/puerto-montt/821/current-weather/821\",\n  \"extractorOptions\": {\n    \"mode\": \"llm-extraction\",\n    \"extractionSchema\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"main\": {\n          \"type\": \"object\",\n          \"description\": \"Datos meteorológicos principales\",\n          \"properties\": {\n            \"temp\": { \"type\": \"number\", \"description\": \"Temperatura principal en °C\" },\n            \"feels_like\": { \"type\": \"number\", \"description\": \"Sensación térmica en °C\" },\n            \"pressure\": { \"type\": \"number\", \"description\": \"Presión en milibares (mb)\" },\n            \"humidity\": { \"type\": \"number\", \"description\": \"Humedad en porcentaje (%)\" }\n          },\n          \"required\": [\"temp\", \"feels_like\", \"pressure\", \"humidity\"]\n        },\n        \"weather\": {\n          \"type\": \"array\",\n          \"description\": \"Descripción del tiempo actual\",\n          \"items\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"description\": { \"type\": \"string\", \"description\": \"Descripción textual del tiempo\" }\n            },\n            \"required\": [\"description\"]\n          }\n        },\n        \"wind\": {\n          \"type\": \"object\",\n          \"description\": \"Información del viento\",\n          \"properties\": {\n            \"speed\": { \"type\": \"number\", \"description\": \"Velocidad del viento en km/h (extraído de 'Viento')\" },\n            \"direction_text\": { \"type\": \"string\", \"description\": \"Dirección del viento como texto o letra (extraído de 'Viento')\" },\n            \"gust\": { \"type\": \"number\", \"description\": \"Velocidad de las ráfagas de viento en km/h (extraído de 'Ráfagas', si disponible)\" }\n          },\n          \"required\": [\"speed\", \"direction_text\"]\n        },\n        \"clouds\": {\n          \"type\": \"object\",\n          \"description\": \"Información de nubosidad\",\n          \"properties\": {\n            \"all\": { \"type\": \"number\", \"description\": \"Porcentaje de nubosidad (%) (extraído de 'Nubosidad')\" }\n          },\n          \"required\": [\"all\"]\n        },\n        \"visibility\": { \"type\": \"number\", \"description\": \"Visibilidad en kilómetros (km) (extraído de 'Visibilidad')\" },\n        \"sys\": {\n          \"type\": \"object\",\n          \"description\": \"Horas de salida y puesta del sol\",\n          \"properties\": {\n            \"sunrise\": { \"type\": \"string\", \"description\": \"Hora de salida del sol (texto)\" },\n            \"sunset\": { \"type\": \"string\", \"description\": \"Hora de puesta del sol (texto)\" }\n          },\n          \"required\": [\"sunrise\", \"sunset\"]\n        },\n        \"name\": { \"type\": \"string\", \"description\": \"Nombre de la ubicación (ej. Puerto Montt)\" }\n      },\n      \"required\": [\"main\", \"weather\", \"wind\", \"clouds\", \"visibility\", \"sys\", \"name\"]\n    }\n  }\n}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -360,
+        -380
+      ],
+      "id": "a7013fc8-d3c2-4faf-b2d9-9f3c80bbf9fe",
+      "name": "HTTP Request",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "gKlw7amPjiD2NmV4",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://climatologia.meteochile.gob.cl/application/servicios/getBoletinClimatologicoDiario",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "usuario",
+              "value": "tecnicafe@gmail.com"
+            },
+            {
+              "name": "token",
+              "value": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+            }
+          ]
+        },
+        "options": {
+          "allowUnauthorizedCerts": true
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -360,
+        -220
+      ],
+      "id": "d98c9705-40d5-40f6-ab3e-f08fd92c7874",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "33107048-dbe5-4eec-a6d0-4cfc0e59e558",
+              "leftValue": "={{ $json.metaDatos.estacion.nombreEstacion }}",
+              "rightValue": "El Tepual  Puerto Montt Ap.",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        -220,
+        -220
+      ],
+      "id": "92006511-c9ef-489e-9d46-9fdfe977365d",
+      "name": "Filter"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "89a1edfb-5fcb-470c-8ee5-244b4c001bee",
+              "name": "metaDatos.estacion.nombreEstacion",
+              "value": "={{ $json.metaDatos.estacion.nombreEstacion }}",
+              "type": "string"
+            },
+            {
+              "id": "56a83c6e-7431-401b-94bf-24bd295b5f2f",
+              "name": "datos.tiempoPresente",
+              "value": "={{ $json.datos.tiempoPresente }}",
+              "type": "string"
+            },
+            {
+              "id": "6ee36d9b-2006-4a7d-9efe-619ac078f49c",
+              "name": "datos.viento",
+              "value": "={{ $json.datos.viento }}",
+              "type": "object"
+            },
+            {
+              "id": "37bc162d-dfe4-4ca8-bd42-1aef7d64e384",
+              "name": "datos.temperaturaMinima",
+              "value": "={{ $json.datos.temperaturaMinima }}",
+              "type": "string"
+            },
+            {
+              "id": "7287b5a7-e90c-4656-aedf-169e715488b0",
+              "name": "datos.horaTemperaturaMinima",
+              "value": "={{ $json.datos.horaTemperaturaMinima }}",
+              "type": "string"
+            },
+            {
+              "id": "b4e2406c-c566-40b1-b75f-165e0f319657",
+              "name": "datos.temperaturaMaxima",
+              "value": "={{ $json.datos.temperaturaMaxima }}",
+              "type": "string"
+            },
+            {
+              "id": "1341085e-4ba5-4ca5-9e39-190e4d38d743",
+              "name": "datos.horaTemperaturaMaxima",
+              "value": "={{ $json.datos.horaTemperaturaMaxima }}",
+              "type": "string"
+            },
+            {
+              "id": "420e28b9-f0df-43c7-a819-08b518a16d71",
+              "name": "datos.precipitacion24Horas",
+              "value": "={{ $json.datos.precipitacion24Horas }}",
+              "type": "string"
+            },
+            {
+              "id": "3859cfde-e69e-4d3c-be9d-7cf31a581e9e",
+              "name": "datos.precipitacionTotalALaFecha",
+              "value": "={{ $json.datos.precipitacionTotalALaFecha }}",
+              "type": "string"
+            },
+            {
+              "id": "08a9f1d3-48b6-4549-9bd5-48012916effb",
+              "name": "metaDatos.fechaDatos",
+              "value": "={{ $json.metaDatos.fechaDatos }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -80,
+        -220
+      ],
+      "id": "19d9fecb-0a04-430f-a9dd-dd85163d9870",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Obtener la salida del nodo anterior (HTTP Request)\n// $json se refiere al primer item del array de entrada\nconst firecrawlOutput = $json.data; // CORREGIDO: Acceder directamente a la propiedad 'data'\nconst extracted = firecrawlOutput.llm_extraction;\n\n// Crear el nuevo objeto con el formato OWM deseado\nconst newItem = {};\n\n// --- Mapear Campos ---\n\n// coord (No disponible, poner null o valores fijos si los conoces)\nnewItem.coord = {\n  lon: null, // No extraído de Accuweather\n  lat: null  // No extraído de Accuweather\n};\n\n// weather (Mapear la descripción)\nnewItem.weather = [];\nif (extracted.weather && extracted.weather.length > 0) {\n  newItem.weather.push({\n    id: null, // No extraído\n    main: null, // Podrías intentar mapear 'Soleado' a 'Clear', etc. si quieres\n    description: extracted.weather[0].description,\n    icon: null // No extraído\n  });\n} else {\n   newItem.weather.push({ id: null, main: null, description: null, icon: null });\n}\n\n\n// base (Valor fijo)\nnewItem.base = \"stations\";\n\n// main (Mapear los datos existentes)\nnewItem.main = {\n  temp: extracted.main.temp,\n  feels_like: extracted.main.feels_like,\n  temp_min: extracted.main.temp, // Asumir temp_min = temp actual\n  temp_max: extracted.main.temp, // Asumir temp_max = temp actual\n  pressure: extracted.main.pressure,\n  humidity: extracted.main.humidity,\n  sea_level: extracted.main.pressure, // Asumir sea_level = pressure\n  grnd_level: null // No extraído\n};\n\n// visibility (Convertir km a metros)\nnewItem.visibility = extracted.visibility ? extracted.visibility * 1000 : null;\n\n// wind (Mapear velocidad, dirección texto, opcionalmente convertir unidades si OWM espera m/s)\n// OWM espera speed en m/s. Firecrawl dio km/h. 1 km/h = 1/3.6 m/s\nconst windSpeedMs = extracted.wind.speed ? parseFloat((extracted.wind.speed / 3.6).toFixed(2)) : null;\nconst windGustMs = extracted.wind.gust ? parseFloat((extracted.wind.gust / 3.6).toFixed(2)) : null;\n\nnewItem.wind = {\n  speed: windSpeedMs,\n  deg: null, // No tenemos dirección en grados\n  direction_text: extracted.wind.direction_text, // Añadido para mantener la info\n  gust: windGustMs\n};\n\n// clouds (Mapear directamente)\nnewItem.clouds = {\n  all: extracted.clouds.all\n};\n\n// dt (Timestamp de la extracción - usar el actual)\nnewItem.dt = Math.floor(Date.now() / 1000);\n\n// sys (Mapear salida/puesta sol, añadir fijos)\n// OWM espera timestamps UNIX. Tenemos strings \"HH:MM\". Convertirlos requiere la fecha.\n// Por simplicidad, los dejamos como strings o null. O puedes poner el timestamp actual.\nnewItem.sys = {\n  type: null, // No extraído\n  id: null,   // No extraído\n  country: \"CL\", // Asumir Chile\n  sunrise: extracted.sys.sunrise, // Mantener como string o convertir a timestamp si sabes la fecha\n  sunset: extracted.sys.sunset   // Mantener como string o convertir a timestamp si sabes la fecha\n};\n\n// timezone (No disponible)\nnewItem.timezone = -14400; // Valor fijo para Chile continental (GMT-4), ajustar si es necesario (GMT-3 en verano?)\n\n// id (ID de la ciudad OWM - No disponible)\nnewItem.id = 3874960; // Valor fijo para Puerto Montt\n\n// name (Mapear directamente)\nnewItem.name = extracted.name;\n\n// cod (Código de estado - fijo)\nnewItem.cod = 200;\n\n\n// Retornar el nuevo objeto formateado para que n8n lo use\n// Es importante devolver un array de items, cada uno con una propiedad 'json'.\nreturn [{ json: newItem }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -220,
+        -380
+      ],
+      "id": "07c39488-0e6f-496e-b2e3-ee02e13ed4a5",
+      "name": "Code"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Test workflow’": {
+      "main": [
+        [
+          {
+            "node": "OpenWeatherMap",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenWeatherMap": {
+      "main": [
+        []
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        []
+      ]
+    },
+    "Code": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "760be7a4-d608-4a95-a873-751669de7e01",
+  "meta": {
+    "instanceId": "ad1cf964ba1a77fb4b88e3450ac984d244c9be7cc9ce9560084bb36740d60b98"
+  },
+  "id": "z5C6j5Zsu8ZYfUqC",
+  "tags": []
+}
