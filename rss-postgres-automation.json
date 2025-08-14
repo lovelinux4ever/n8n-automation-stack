@@ -1,0 +1,234 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -256,
+        -64
+      ],
+      "id": "649ed025-3723-407b-9868-3762ba3371c9",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "articulos",
+          "mode": "list",
+          "cachedResultName": "articulos"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "fuente_url": "https://www.ejemplo.com/articulo1",
+            "titulo_original": "Este es un artículo de prueba desde n8n"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "fecha_creacion",
+              "displayName": "fecha_creacion",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "fuente_url",
+              "displayName": "fuente_url",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "titulo_original",
+              "displayName": "titulo_original",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "contenido_original",
+              "displayName": "contenido_original",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "titulo_traducido",
+              "displayName": "titulo_traducido",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "resumen",
+              "displayName": "resumen",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "estado",
+              "displayName": "estado",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "error_log",
+              "displayName": "error_log",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "meta_datos",
+              "displayName": "meta_datos",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "object",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -48,
+        -64
+      ],
+      "id": "a895753c-7b67-4e7d-af6a-759367025451",
+      "name": "Insert rows in a table",
+      "credentials": {
+        "postgres": {
+          "id": "5HsdM8Rsq0zDRZXD",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "http://freshrss:8088/api/greader.php",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        48,
+        48
+      ],
+      "id": "349ebdcf-4be9-42c5-b289-b416443b9c42",
+      "name": "RSS Read"
+    },
+    {
+      "parameters": {
+        "command": "cat <<EOF > /tmp/get_favourites_success.py\nimport psycopg2\nimport json\nimport sys\n\ntry:\n    conn = psycopg2.connect(\n        host=\"postgres-vector\",\n        database=\"freshrss_db\",\n        user=\"postgres\",\n        password=\"mi_contraseña\"\n    )\n    cur = conn.cursor()\n    \n    # CONSULTA CORREGIDA: Usamos 1 en lugar de true\n    cur.execute(\"\"\"\n        SELECT e.id, e.title, e.link, array_agg(t.name) as tags\n        FROM \"Paul_entry\" e\n        LEFT JOIN \"Paul_entrytag\" et ON e.id = et.id_entry\n        LEFT JOIN \"Paul_tag\" t ON et.id_tag = t.id\n        WHERE e.is_favorite = 1\n        GROUP BY e.id, e.title, e.link;\n    \"\"\")\n    \n    articles = cur.fetchall()\n    \n    items_list = []\n    for article in articles:\n        items_list.append({\n            'id': article[0],\n            'title': article[1],\n            'url': article[2],\n            'tags': article[3] if article[3] else []\n        })\n\n    output = {'status': 'success', 'count': len(items_list), 'items': items_list}\n    print(json.dumps(output))\n\n    cur.close()\n    conn.close()\n\nexcept Exception as e:\n    output = {'status': 'error', 'message': str(e)}\n    print(json.dumps(output), file=sys.stderr)\n    sys.exit(1)\nEOF\n\n/opt/py-env/bin/python3 /tmp/get_favourites_success.py"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        -480,
+        48
+      ],
+      "id": "54c5a6cd-cb9a-4137-81ee-af5d1fd2f4ef",
+      "name": "Execute Command"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://192.168.100.77:8088/api/fever.php?api_key=XXXXXXXXXXXXXXX",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "api",
+              "value": "?"
+            }
+          ]
+        },
+        "options": {
+          "allowUnauthorizedCerts": true
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        416,
+        128
+      ],
+      "id": "0632530d-ab71-4244-b474-ffa76f48b42d",
+      "name": "HTTP Request"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Insert rows in a table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Command": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "5e8da053-5590-4330-acde-37dedb3d84c6",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "cf03afc2a6446c45bf716ece1dcf0097fffaea6b88e9f7e9f8649c860d407212"
+  },
+  "id": "fXrDWnZWlX82jaI8",
+  "tags": []
+}
