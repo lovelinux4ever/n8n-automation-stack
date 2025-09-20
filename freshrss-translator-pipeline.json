@@ -1,0 +1,277 @@
+{
+  "name": "automatizacion FreshRSS + traductor",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -464,
+        -128
+      ],
+      "id": "649ed025-3723-407b-9868-3762ba3371c9",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "command": "cat <<EOF > /tmp/get_articles_with_content.py\nimport psycopg2\nimport json\nimport sys\n\ntry:\n    conn = psycopg2.connect(\n        host=\"postgres-vector\",\n        database=\"freshrss_db\",\n        user=\"postgres\",\n        password=\"XXXXXXXXXXXXXXXXXX\"\n    )\n    cur = conn.cursor()\n    \n    # CONSULTA CORREGIDA: Añadimos \"e.content\"\n    cur.execute(\"\"\"\n        SELECT e.id, e.title, e.link, e.content, array_agg(t.name) as tags\n        FROM \"Paul_entry\" e\n        LEFT JOIN \"Paul_entrytag\" et ON e.id = et.id_entry\n        LEFT JOIN \"Paul_tag\" t ON et.id_tag = t.id\n        WHERE e.is_favorite = 1\n        GROUP BY e.id, e.title, e.link, e.content;\n    \"\"\")\n    \n    articles = cur.fetchall()\n    \n    items_list = []\n    for article in articles:\n        items_list.append({\n            'id': article[0],\n            'title': article[1],\n            'url': article[2],\n            'content': article[3], # Añadimos el contenido a la salida\n            'tags': article[4] if article[4] else []\n        })\n\n    output = {'status': 'success', 'count': len(items_list), 'items': items_list}\n    print(json.dumps(output))\n\n    cur.close()\n    conn.close()\n\nexcept Exception as e:\n    output = {'status': 'error', 'message': str(e)}\n    print(json.dumps(output), file=sys.stderr)\n    sys.exit(1)\nEOF\n\n/opt/py-env/bin/python3 /tmp/get_articles_with_content.py"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        -288,
+        -272
+      ],
+      "id": "54c5a6cd-cb9a-4137-81ee-af5d1fd2f4ef",
+      "name": "Execute Command"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Primero, parseamos el texto 'stdout' para convertirlo en un objeto JSON.\nconst data = JSON.parse($input.item.json.stdout);\n\n// Luego, devolvemos la lista de 'items' que está dentro.\n// n8n recibirá esta lista y la procesará ítem por ítem automáticamente.\nreturn data.items;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -112,
+        -304
+      ],
+      "id": "dcef736e-0b0a-4cc1-a6db-34c300f05909",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "articulos",
+          "mode": "list",
+          "cachedResultName": "articulos"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "fuente_url": "={{ $node[\"Code\"].json.url }}",
+            "titulo_original": "={{ $node[\"Code\"].json.title }}",
+            "contenido_original": "={{ $node[\"Code\"].json.content }}",
+            "titulo_traducido": "={{ $node[\"Code\"].json.title }}",
+            "estado": "procesado"
+          },
+          "matchingColumns": [
+            "fuente_url"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "fecha_creacion",
+              "displayName": "fecha_creacion",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": false,
+              "removed": true
+            },
+            {
+              "id": "fuente_url",
+              "displayName": "fuente_url",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "titulo_original",
+              "displayName": "titulo_original",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "contenido_original",
+              "displayName": "contenido_original",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "titulo_traducido",
+              "displayName": "titulo_traducido",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "resumen",
+              "displayName": "resumen",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "estado",
+              "displayName": "estado",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "error_log",
+              "displayName": "error_log",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "meta_datos",
+              "displayName": "meta_datos",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "object",
+              "canBeUsedToMatch": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        288,
+        -240
+      ],
+      "id": "9dcbedbd-4cb7-4fcc-89c1-a1d08b852092",
+      "name": "Insert or update rows in a table",
+      "credentials": {
+        "postgres": {
+          "id": "5HsdM8Rsq0zDRZXD",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://libretranslate:5000/translate",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "=q",
+              "value": "={{ $json.content }}"
+            },
+            {
+              "name": "source",
+              "value": "en"
+            },
+            {
+              "name": "target",
+              "value": "es"
+            },
+            {
+              "name": "format",
+              "value": "html"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        32,
+        -176
+      ],
+      "id": "e47fb131-4ff6-4b57-af72-b7c502830cc6",
+      "name": "HTTP Request"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Execute Command",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Command": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Insert or update rows in a table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "d81e4c30-0568-4257-845f-895012e87e96",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "cf03afc2a6446c45bf716ece1dcf0097fffaea6b88e9f7e9f8649c860d407212"
+  },
+  "id": "fXrDWnZWlX82jaI8",
+  "tags": []
+}
