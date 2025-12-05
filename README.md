@@ -4,8 +4,6 @@ Repositorio de flujos de trabajo avanzados para la gestión de datos y automatiz
 
 ## Workflow 1: FreshRSS to Postgres & Vector DB Bridge
 Este flujo automatiza la extracción de artículos favoritos desde una base de datos FreshRSS y su posterior procesamiento.
-
-### Características Técnicas:
 - **Custom Python Injection**: Consulta optimizada a PostgreSQL usando Python para manejar lógica de favoritos (`is_favorite = 1`).
 - **Multi-API Integration**: Soporte para protocolos GReader y Fever.
 - **ETL Pipeline**: Extracción, transformación y carga directa en tablas estructuradas de PostgreSQL para posterior análisis.
@@ -26,3 +24,8 @@ Sistema de agregación meteorológica multifuente que combina APIs tradicionales
 - **Government API Integration**: Consumo de servicios oficiales de climatología con filtrado dinámico.
 
 
+## Workflow 4: Dynamic Image Metadata Ingestion (INCOMPLETO)
+Un flujo interactivo diseñado para asegurar el cumplimiento de derechos de autor en activos visuales.
+- **EXIF Analysis**: Extracción automática de metadatos de archivos binarios (JPG/PNG).
+- **Dynamic Form Generation**: Uso de JavaScript para evaluar campos faltantes (Autor, Fuente, Licencia) y generar formularios UI en tiempo real solo cuando es necesario.
+- **Smart Conditional Logic**: Bifurcación de flujos basada en la integridad de los datos de entrada.

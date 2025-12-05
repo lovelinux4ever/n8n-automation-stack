@@ -1,0 +1,178 @@
+{
+  "name": "INGESTA IMAGENES",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Imagen a Subir",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "imagen",
+              "fieldType": "file"
+            },
+            {
+              "fieldLabel": "Palabras Clave (separadas por coma)",
+              "placeholder": "Palabras Clave "
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        112,
+        160
+      ],
+      "id": "ab9e01f2-45b9-46c8-a5a7-b789989e6894",
+      "name": "Imagen a Subir",
+      "webhookId": "a8c59fe7-73dd-4f56-8fe1-f25226892293"
+    },
+    {
+      "parameters": {
+        "dataPropertyName": "imagen",
+        "options": {
+          "readRaw": true
+        }
+      },
+      "type": "n8n-nodes-exif-data.exifData",
+      "typeVersion": 1,
+      "position": [
+        288,
+        160
+      ],
+      "id": "b47e3a81-c7ba-4618-ba60-2ddfad04cbe0",
+      "name": "EXIF Data"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "ef537973-93f4-4c50-932d-c6ae087f7f3b",
+              "leftValue": "={{$json.exifData.Author}}",
+              "rightValue": "",
+              "operator": {
+                "type": "number",
+                "operation": "empty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "ef4e5743-e7d2-4ece-a5a0-821d05aa6a54",
+              "leftValue": "={{$json.exifData.Source}}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "empty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        432,
+        160
+      ],
+      "id": "603a7084-5548-4003-a47f-50f3889f5a9f",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nfor (const item of items) {\n  const camposFaltantes = [];\n  const exif = item.json.exifData;\n\n  const autor = exif.Author || exif.Creator || exif.Autor;\n  if (!autor) {\n    camposFaltantes.push('autor');\n  }\n\n  const fuente = exif.Source;\n  if (!fuente) {\n    camposFaltantes.push('fuente_url');\n  }\n\n  const licencia = exif.License || exif.Copyright;\n  if (!licencia) {\n    camposFaltantes.push('licencia');\n  }\n\n  const etiquetas = {\n    'autor': 'Autor de la Imagen',\n    'fuente_url': 'Fuente (URL)',\n    'licencia': 'Licencia o Copyright (Opcional)'\n  };\n\n  const formElementsJson = camposFaltantes.map(function(campo) {\n    return {\n      fieldLabel: etiquetas[campo] || campo,\n      fieldType: 'text',\n      fieldName: campo,\n      requiredField: campo !== 'licencia'\n    };\n  }); // <-- El punto y coma faltante se ha añadido aquí.\n\n  item.json.form_elements_json = formElementsJson;\n}\n\nreturn items;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        576,
+        64
+      ],
+      "id": "fcf2ac79-a2b1-48b9-9910-2b7367eeb759",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "defineForm": "json",
+        "jsonOutput": "={{ $json.form_elements_json }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.form",
+      "typeVersion": 1,
+      "position": [
+        768,
+        64
+      ],
+      "id": "2f2bad83-9fcc-4992-8788-672f4a4bbc79",
+      "name": "Completar Información de la Imagen",
+      "webhookId": "c7761730-06a7-4084-a649-601ca61973c8"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Imagen a Subir": {
+      "main": [
+        [
+          {
+            "node": "EXIF Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "EXIF Data": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Completar Información de la Imagen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "ac4fe40c-4693-4ff8-a339-5fcdfd54aaa8",
+  "meta": {
+    "instanceId": "cf03afc2a6446c45bf716ece1dcf0097fffaea6b88e9f7e9f8649c860d407212"
+  },
+  "id": "HTLVx9jhwikVMCjE",
+  "tags": []
+}
